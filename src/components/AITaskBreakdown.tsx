@@ -36,13 +36,13 @@ export function AITaskBreakdown() {
   };
 
   return (
-    <Card className="w-full">
+    <Card className="w-full retro-card border-0">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2 neon-text uppercase tracking-wider">
           <Bot className="w-5 h-5 text-primary" />
-          AI Task Breakdown
+          AI TASK BREAKDOWN
         </CardTitle>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground font-mono">
           Describe your project or feature, and I'll help break it down into manageable tasks.
         </p>
       </CardHeader>
@@ -59,17 +59,17 @@ export function AITaskBreakdown() {
         <Button 
           onClick={handleAnalyze} 
           disabled={!taskDescription.trim() || isAnalyzing}
-          className="w-full"
+          className="w-full retro-button font-bold"
         >
           {isAnalyzing ? (
             <>
               <Sparkles className="w-4 h-4 mr-2 animate-spin" />
-              Analyzing...
+              ANALYZING...
             </>
           ) : (
             <>
               <Bot className="w-4 h-4 mr-2" />
-              Break Down Task
+              BREAK DOWN TASK
             </>
           )}
         </Button>
@@ -77,32 +77,32 @@ export function AITaskBreakdown() {
         {suggestions.length > 0 && (
           <div className="space-y-3">
             <div className="flex items-center gap-2">
-              <h4 className="font-medium">Suggested Breakdown:</h4>
-              <Badge variant="secondary" className="text-xs">
-                {suggestions.length} tasks
+              <h4 className="font-bold neon-text uppercase tracking-wider">SUGGESTED BREAKDOWN:</h4>
+              <Badge variant="secondary" className="text-xs font-bold bg-accent text-accent-foreground border-2 border-primary">
+                {suggestions.length} TASKS
               </Badge>
             </div>
             
             <div className="space-y-2">
               {suggestions.map((suggestion, index) => (
-                <div key={index} className="flex items-center justify-between p-3 border border-border rounded-lg bg-muted/30">
-                  <span className="text-sm flex-1">{suggestion}</span>
+                <div key={index} className="flex items-center justify-between p-3 retro-card rounded-none bg-muted/30">
+                  <span className="text-sm flex-1 font-mono">{suggestion}</span>
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => createTaskFromSuggestion(suggestion)}
-                    className="ml-2"
+                    className="ml-2 retro-button"
                   >
                     <Plus className="w-3 h-3 mr-1" />
-                    Add Task
+                    ADD TASK
                   </Button>
                 </div>
               ))}
             </div>
             
-            <Button variant="outline" className="w-full">
+            <Button variant="outline" className="w-full retro-button font-bold">
               <Plus className="w-4 h-4 mr-2" />
-              Create All Tasks
+              CREATE ALL TASKS
             </Button>
           </div>
         )}

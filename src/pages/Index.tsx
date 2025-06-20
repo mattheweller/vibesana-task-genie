@@ -77,14 +77,14 @@ const Index = () => {
         <main className="flex-1 p-6 space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold">Dashboard</h1>
-              <p className="text-muted-foreground">Welcome back! Here's what's happening with your projects.</p>
+              <h1 className="text-3xl font-bold neon-text uppercase tracking-wider">DASHBOARD</h1>
+              <p className="text-muted-foreground font-mono">Welcome back! Here's what's happening with your projects.</p>
             </div>
             <div className="flex items-center gap-2">
               <SidebarTrigger />
-              <Button>
+              <Button className="retro-button neon-text font-bold">
                 <Plus className="w-4 h-4 mr-2" />
-                New Task
+                NEW TASK
               </Button>
             </div>
           </div>
@@ -93,15 +93,15 @@ const Index = () => {
             <div className="lg:col-span-2 space-y-6">
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-semibold">Recent Tasks</h2>
+                  <h2 className="text-xl font-semibold neon-text uppercase tracking-wider">RECENT TASKS</h2>
                   <div className="flex items-center gap-2">
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                       <Input placeholder="Search tasks..." className="pl-9 w-64" />
                     </div>
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" className="retro-button">
                       <Filter className="w-4 h-4 mr-2" />
-                      Filter
+                      FILTER
                     </Button>
                   </div>
                 </div>
@@ -113,7 +113,7 @@ const Index = () => {
               </div>
 
               <div>
-                <h2 className="text-xl font-semibold mb-4">Active Projects</h2>
+                <h2 className="text-xl font-semibold mb-4 neon-text uppercase tracking-wider">ACTIVE PROJECTS</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {mockProjects.map((project) => (
                     <ProjectCard key={project.id} project={project} />

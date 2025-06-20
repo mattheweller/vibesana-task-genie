@@ -38,14 +38,14 @@ const priorityColors = {
 
 export function TaskCard({ task }: TaskCardProps) {
   return (
-    <Card className="hover:shadow-sm transition-shadow cursor-pointer group">
+    <Card className="retro-card hover:shadow-2xl transition-all cursor-pointer group border-0">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-2">
-            <Badge variant="outline" className={statusColors[task.status]}>
+            <Badge variant="outline" className="bg-primary text-primary-foreground font-bold uppercase border-2 border-accent">
               {task.status.replace("-", " ")}
             </Badge>
-            <Badge variant="outline" className={priorityColors[task.priority]}>
+            <Badge variant="outline" className="bg-secondary text-secondary-foreground font-bold uppercase border-2 border-destructive">
               {task.priority}
             </Badge>
           </div>
@@ -68,8 +68,8 @@ export function TaskCard({ task }: TaskCardProps) {
         </div>
       </CardHeader>
       <CardContent>
-        <h3 className="font-medium mb-2">{task.title}</h3>
-        <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{task.description}</p>
+        <h3 className="font-bold mb-2 neon-text uppercase tracking-wide">{task.title}</h3>
+        <p className="text-sm text-muted-foreground mb-4 line-clamp-2 font-mono">{task.description}</p>
         
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <div className="flex items-center gap-3">

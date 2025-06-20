@@ -46,13 +46,13 @@ const settingsItems = [
 
 export function AppSidebar() {
   return (
-    <Sidebar>
+    <Sidebar className="retro-border">
       <SidebarHeader className="p-6">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+          <div className="w-8 h-8 bg-primary rounded-none border-2 border-accent flex items-center justify-center">
             <span className="text-primary-foreground font-bold text-sm">V</span>
           </div>
-          <span className="font-semibold text-lg">Vibesana</span>
+          <span className="font-bold text-lg neon-text uppercase tracking-wider">VIBESANA</span>
         </div>
       </SidebarHeader>
       
@@ -63,7 +63,7 @@ export function AppSidebar() {
               {navigationItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <a href={item.url} className="flex items-center gap-3 px-3 py-2 rounded-lg">
+                    <a href={item.url} className="flex items-center gap-3 px-3 py-2 rounded-none font-bold uppercase tracking-wide">
                       <item.icon size={16} />
                       <span>{item.title}</span>
                     </a>
@@ -75,14 +75,14 @@ export function AppSidebar() {
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel className="px-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-            Quick Actions
+          <SidebarGroupLabel className="px-3 text-xs font-bold neon-text uppercase tracking-wider">
+            QUICK ACTIONS
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <div className="px-3">
-              <Button size="sm" className="w-full justify-start gap-2" variant="outline">
+              <Button size="sm" className="w-full justify-start gap-2 retro-button font-bold" variant="outline">
                 <Plus size={14} />
-                New Task
+                NEW TASK
               </Button>
             </div>
           </SidebarGroupContent>
@@ -94,7 +94,7 @@ export function AppSidebar() {
           {settingsItems.map((item) => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton asChild>
-                <a href={item.url} className="flex items-center gap-3 px-3 py-2 rounded-lg">
+                <a href={item.url} className="flex items-center gap-3 px-3 py-2 rounded-none font-bold uppercase tracking-wide">
                   <item.icon size={16} />
                   <span>{item.title}</span>
                 </a>

@@ -33,12 +33,12 @@ const statusColors = {
 
 export function ProjectCard({ project }: ProjectCardProps) {
   return (
-    <Card className="hover:shadow-sm transition-shadow cursor-pointer group">
+    <Card className="retro-card hover:shadow-2xl transition-all cursor-pointer group border-0">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div>
-            <h3 className="font-semibold mb-1">{project.name}</h3>
-            <p className="text-sm text-muted-foreground line-clamp-2">{project.description}</p>
+            <h3 className="font-bold mb-1 neon-text uppercase tracking-wide">{project.name}</h3>
+            <p className="text-sm text-muted-foreground line-clamp-2 font-mono">{project.description}</p>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -58,10 +58,10 @@ export function ProjectCard({ project }: ProjectCardProps) {
       <CardContent>
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <Badge variant="outline" className={statusColors[project.status]}>
+            <Badge variant="outline" className="bg-accent text-accent-foreground font-bold uppercase border-2 border-primary">
               {project.status.replace("-", " ")}
             </Badge>
-            <span className="text-sm font-medium">{project.progress}%</span>
+            <span className="text-sm font-bold neon-text">{project.progress}%</span>
           </div>
           
           <Progress value={project.progress} className="h-2" />

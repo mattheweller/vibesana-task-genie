@@ -25,10 +25,10 @@ interface ProjectCardProps {
 }
 
 const statusColors = {
-  "active": "bg-green-100 text-green-700",
-  "planning": "bg-blue-100 text-blue-700",
-  "completed": "bg-gray-100 text-gray-700",
-  "on-hold": "bg-yellow-100 text-yellow-700",
+  "active": "bg-green-200 text-green-900 border-green-300",
+  "planning": "bg-blue-200 text-blue-900 border-blue-300",
+  "completed": "bg-gray-200 text-gray-900 border-gray-300",
+  "on-hold": "bg-yellow-200 text-yellow-900 border-yellow-300",
 };
 
 export function ProjectCard({ project }: ProjectCardProps) {
@@ -58,7 +58,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
       <CardContent>
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <Badge variant="outline" className={statusColors[project.status]}>
+            <Badge variant="outline" className={`${statusColors[project.status]} font-medium`}>
               {project.status.replace("-", " ")}
             </Badge>
             <span className="text-sm font-medium">{project.progress}%</span>

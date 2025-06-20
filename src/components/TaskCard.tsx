@@ -24,16 +24,16 @@ interface TaskCardProps {
 }
 
 const statusColors = {
-  "todo": "bg-gray-100 text-gray-700",
-  "in-progress": "bg-blue-100 text-blue-700",
-  "review": "bg-yellow-100 text-yellow-700",
-  "done": "bg-green-100 text-green-700",
+  "todo": "bg-gray-200 text-gray-900 border-gray-300",
+  "in-progress": "bg-blue-200 text-blue-900 border-blue-300",
+  "review": "bg-yellow-200 text-yellow-900 border-yellow-300",
+  "done": "bg-green-200 text-green-900 border-green-300",
 };
 
 const priorityColors = {
-  "low": "bg-gray-100 text-gray-600",
-  "medium": "bg-orange-100 text-orange-600",
-  "high": "bg-red-100 text-red-600",
+  "low": "bg-gray-200 text-gray-900 border-gray-300",
+  "medium": "bg-orange-200 text-orange-900 border-orange-300",
+  "high": "bg-red-200 text-red-900 border-red-300",
 };
 
 export function TaskCard({ task }: TaskCardProps) {
@@ -42,10 +42,10 @@ export function TaskCard({ task }: TaskCardProps) {
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-2">
-            <Badge variant="outline" className={statusColors[task.status]}>
+            <Badge variant="outline" className={`${statusColors[task.status]} font-medium`}>
               {task.status.replace("-", " ")}
             </Badge>
-            <Badge variant="outline" className={priorityColors[task.priority]}>
+            <Badge variant="outline" className={`${priorityColors[task.priority]} font-medium`}>
               {task.priority}
             </Badge>
           </div>

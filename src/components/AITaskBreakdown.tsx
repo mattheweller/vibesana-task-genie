@@ -1,38 +1,78 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Bot, Plus, Sparkles } from "lucide-react";
 import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { Task } from "@/hooks/useTasks";
 
-export function AITaskBreakdown() {
+interface AITaskBreakdownProps {
+  onTasksGenerated?: (tasks: Omit<Task, 'id' | 'created_at' | 'updated_at'>[]) => void;
+}
+
+export function AITaskBreakdown({ onTasksGenerated }: AITaskBreakdownProps) {
   const [taskDescription, setTaskDescription] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [suggestions, setSuggestions] = useState<Omit<Task, 'id' | 'created_at' | 'updated_at'>[]>([]);
+  const { toast } = useToast();
 
   const handleAnalyze = async () => {
     if (!taskDescription.trim()) return;
     
     setIsAnalyzing(true);
-    // Simulate AI analysis delay
-    setTimeout(() => {
-      setSuggestions([
-        "Set up project repository and initial structure",
-        "Design database schema and relationships",
-        "Implement user authentication system",
-        "Create main dashboard components",
-        "Add task creation and management features",
-        "Implement real-time updates",
-        "Write comprehensive tests",
-        "Deploy to production environment"
-      ]);
+    try {
+      console.log('Calling AI task breakdown for:', taskDescription);
+      
+      const { data, error } = await supabase.functions.invoke('ai-task-breakdown', {
+        body: { description: taskDescription }
+      });
+
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw error;
+      }
+
+      console.log('AI breakdown response:', data);
+
+      if (data.tasks && Array.isArray(data.tasks)) {
+        setSuggestions(data.tasks);
+        onTasksGenerated?.(data.tasks);
+        toast({
+          title: "Tasks generated successfully!",
+          description: `AI generated ${data.tasks.length} tasks for your project.`,
+        });
+      } else {
+        throw new Error('Invalid response format from AI');
+      }
+
+    } catch (error) {
+      console.error('Error generating task breakdown:', error);
+      toast({
+        title: "Error generating tasks",
+        description: "Could not generate task breakdown. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
       setIsAnalyzing(false);
-    }, 2000);
+    }
   };
 
-  const createTaskFromSuggestion = (suggestion: string) => {
-    // This would integrate with your task management system
-    console.log("Creating task:", suggestion);
+  const createTaskFromSuggestion = (suggestion: Omit<Task, 'id' | 'created_at' | 'updated_at'>) => {
+    // Dispatch a custom event that the parent component can listen to
+    window.dispatchEvent(new CustomEvent('createTaskFromAI', { 
+      detail: suggestion 
+    }));
+  };
+
+  const createAllTasks = () => {
+    suggestions.forEach(suggestion => {
+      window.dispatchEvent(new CustomEvent('createTaskFromAI', { 
+        detail: suggestion 
+      }));
+    });
   };
 
   return (
@@ -85,8 +125,19 @@ export function AITaskBreakdown() {
             
             <div className="space-y-2">
               {suggestions.map((suggestion, index) => (
-                <div key={index} className="flex items-center justify-between p-3 retro-card rounded-none bg-muted/30">
-                  <span className="text-sm flex-1 font-mono">{suggestion}</span>
+                <div key={index} className="flex items-start justify-between p-3 retro-card rounded-none bg-muted/30">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-sm font-bold">{suggestion.title}</span>
+                      <Badge 
+                        variant={suggestion.priority === 'high' ? 'destructive' : suggestion.priority === 'medium' ? 'default' : 'secondary'}
+                        className="text-xs"
+                      >
+                        {suggestion.priority?.toUpperCase()}
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground font-mono">{suggestion.description}</p>
+                  </div>
                   <Button
                     size="sm"
                     variant="outline"
@@ -94,13 +145,17 @@ export function AITaskBreakdown() {
                     className="ml-2 retro-button"
                   >
                     <Plus className="w-3 h-3 mr-1" />
-                    ADD TASK
+                    ADD
                   </Button>
                 </div>
               ))}
             </div>
             
-            <Button variant="outline" className="w-full retro-button font-bold">
+            <Button 
+              variant="outline" 
+              className="w-full retro-button font-bold"
+              onClick={createAllTasks}
+            >
               <Plus className="w-4 h-4 mr-2" />
               CREATE ALL TASKS
             </Button>

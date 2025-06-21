@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -58,14 +57,26 @@ const Index = () => {
     setTaskFormOpen(true);
   };
 
-  // Listen for create task events from sidebar
+  // Listen for create task events from sidebar and AI component
   useEffect(() => {
     const handleCreateTaskEvent = () => {
       handleCreateTask();
     };
+
+    const handleCreateTaskFromAI = (event: CustomEvent) => {
+      const taskData = event.detail;
+      console.log('Creating task from AI suggestion:', taskData);
+      createTask(taskData);
+    };
+
     window.addEventListener('createTask', handleCreateTaskEvent);
-    return () => window.removeEventListener('createTask', handleCreateTaskEvent);
-  }, []);
+    window.addEventListener('createTaskFromAI', handleCreateTaskFromAI as EventListener);
+    
+    return () => {
+      window.removeEventListener('createTask', handleCreateTaskEvent);
+      window.removeEventListener('createTaskFromAI', handleCreateTaskFromAI as EventListener);
+    };
+  }, [createTask]);
 
   const handleEditTask = (task: Task) => {
     setEditingTask(task);
@@ -180,7 +191,9 @@ const Index = () => {
             </div>
 
             <div className="space-y-6">
-              <AITaskBreakdown />
+              <AITaskBreakdown onTasksGenerated={(tasks) => {
+                console.log('AI generated tasks:', tasks);
+              }} />
             </div>
           </div>
         </main>

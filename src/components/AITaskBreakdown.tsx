@@ -8,6 +8,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Task } from "@/hooks/useTasks";
+import { opikClient } from "@/lib/opik";
 
 interface AITaskBreakdownProps {
   onTasksGenerated?: (tasks: Omit<Task, 'id' | 'created_at' | 'updated_at'>[]) => void;
@@ -23,8 +24,22 @@ export function AITaskBreakdown({ onTasksGenerated }: AITaskBreakdownProps) {
     if (!taskDescription.trim()) return;
     
     setIsAnalyzing(true);
+    const sessionId = crypto.randomUUID();
+    
     try {
       console.log('Calling AI task breakdown for:', taskDescription);
+      
+      // Track user interaction with Opik
+      try {
+        await opikClient.trace({
+          name: 'user-task-breakdown-request',
+          input: { description: taskDescription },
+          tags: ['user-interaction', 'frontend'],
+          metadata: { sessionId },
+        });
+      } catch (opikError) {
+        console.log('Opik tracking failed:', opikError);
+      }
       
       const { data, error } = await supabase.functions.invoke('ai-task-breakdown', {
         body: { description: taskDescription }
@@ -40,6 +55,20 @@ export function AITaskBreakdown({ onTasksGenerated }: AITaskBreakdownProps) {
       if (data.tasks && Array.isArray(data.tasks)) {
         setSuggestions(data.tasks);
         onTasksGenerated?.(data.tasks);
+        
+        // Track successful task generation
+        try {
+          await opikClient.trace({
+            name: 'task-breakdown-success',
+            input: { description: taskDescription },
+            output: { taskCount: data.tasks.length },
+            tags: ['success', 'frontend'],
+            metadata: { sessionId },
+          });
+        } catch (opikError) {
+          console.log('Opik tracking failed:', opikError);
+        }
+        
         toast({
           title: "Tasks generated successfully!",
           description: `AI generated ${data.tasks.length} tasks for your project.`,
@@ -50,6 +79,20 @@ export function AITaskBreakdown({ onTasksGenerated }: AITaskBreakdownProps) {
 
     } catch (error) {
       console.error('Error generating task breakdown:', error);
+      
+      // Track error with Opik
+      try {
+        await opikClient.trace({
+          name: 'task-breakdown-error',
+          input: { description: taskDescription },
+          output: { error: error.message },
+          tags: ['error', 'frontend'],
+          metadata: { sessionId },
+        });
+      } catch (opikError) {
+        console.log('Opik tracking failed:', opikError);
+      }
+      
       toast({
         title: "Error generating tasks",
         description: "Could not generate task breakdown. Please try again.",
@@ -61,6 +104,17 @@ export function AITaskBreakdown({ onTasksGenerated }: AITaskBreakdownProps) {
   };
 
   const createTaskFromSuggestion = (suggestion: Omit<Task, 'id' | 'created_at' | 'updated_at'>) => {
+    // Track task creation from AI suggestion
+    try {
+      opikClient.trace({
+        name: 'create-task-from-ai',
+        input: { task: suggestion },
+        tags: ['task-creation', 'ai-suggestion'],
+      });
+    } catch (opikError) {
+      console.log('Opik tracking failed:', opikError);
+    }
+    
     // Dispatch a custom event that the parent component can listen to
     window.dispatchEvent(new CustomEvent('createTaskFromAI', { 
       detail: suggestion 
@@ -68,6 +122,17 @@ export function AITaskBreakdown({ onTasksGenerated }: AITaskBreakdownProps) {
   };
 
   const createAllTasks = () => {
+    // Track bulk task creation
+    try {
+      opikClient.trace({
+        name: 'create-all-tasks-from-ai',
+        input: { taskCount: suggestions.length },
+        tags: ['bulk-task-creation', 'ai-suggestion'],
+      });
+    } catch (opikError) {
+      console.log('Opik tracking failed:', opikError);
+    }
+    
     suggestions.forEach(suggestion => {
       window.dispatchEvent(new CustomEvent('createTaskFromAI', { 
         detail: suggestion 

@@ -23,9 +23,9 @@ const statusColors = {
   "done": "bg-green-100 text-green-700"
 };
 const priorityColors = {
-  "low": "bg-gray-100 text-gray-600",
-  "medium": "bg-orange-100 text-orange-600",
-  "high": "bg-red-100 text-red-600"
+  "low": "bg-accent/20 text-accent border-accent",
+  "medium": "bg-secondary/20 text-secondary border-secondary", 
+  "high": "bg-destructive/20 text-destructive border-destructive"
 };
 export function TaskCard({
   task
@@ -37,7 +37,7 @@ export function TaskCard({
             <Badge variant="outline" className="bg-primary text-primary-foreground font-bold uppercase border-2 border-accent">
               {task.status.replace("-", " ")}
             </Badge>
-            <Badge variant="outline" className="text-secondary-foreground font-bold uppercase border-2 border-destructive bg-red-400">
+            <Badge variant="outline" className={`font-bold uppercase border-2 ${priorityColors[task.priority]}`}>
               {task.priority}
             </Badge>
           </div>

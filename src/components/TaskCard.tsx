@@ -2,13 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { MoreHorizontal, MessageSquare, Bot } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 interface TaskCardProps {
   task: {
     id: string;
@@ -22,30 +16,28 @@ interface TaskCardProps {
     comments?: number;
   };
 }
-
 const statusColors = {
   "todo": "bg-gray-100 text-gray-700",
   "in-progress": "bg-blue-100 text-blue-700",
   "review": "bg-yellow-100 text-yellow-700",
-  "done": "bg-green-100 text-green-700",
+  "done": "bg-green-100 text-green-700"
 };
-
 const priorityColors = {
   "low": "bg-gray-100 text-gray-600",
   "medium": "bg-orange-100 text-orange-600",
-  "high": "bg-red-100 text-red-600",
+  "high": "bg-red-100 text-red-600"
 };
-
-export function TaskCard({ task }: TaskCardProps) {
-  return (
-    <Card className="retro-card hover:shadow-2xl transition-all cursor-pointer group border-0">
+export function TaskCard({
+  task
+}: TaskCardProps) {
+  return <Card className="retro-card hover:shadow-2xl transition-all cursor-pointer group border-0">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="bg-primary text-primary-foreground font-bold uppercase border-2 border-accent">
               {task.status.replace("-", " ")}
             </Badge>
-            <Badge variant="outline" className="bg-secondary text-secondary-foreground font-bold uppercase border-2 border-destructive">
+            <Badge variant="outline" className="text-secondary-foreground font-bold uppercase border-2 border-destructive bg-red-400">
               {task.priority}
             </Badge>
           </div>
@@ -73,30 +65,21 @@ export function TaskCard({ task }: TaskCardProps) {
         
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <div className="flex items-center gap-3">
-            {task.subtasks && (
-              <span>{task.subtasks} subtasks</span>
-            )}
-            {task.comments && (
-              <div className="flex items-center gap-1">
+            {task.subtasks && <span>{task.subtasks} subtasks</span>}
+            {task.comments && <div className="flex items-center gap-1">
                 <MessageSquare size={12} />
                 <span>{task.comments}</span>
-              </div>
-            )}
+              </div>}
           </div>
           <div className="flex items-center gap-2">
-            {task.assignee && (
-              <div className="w-5 h-5 bg-primary rounded-full flex items-center justify-center">
+            {task.assignee && <div className="w-5 h-5 bg-primary rounded-full flex items-center justify-center">
                 <span className="text-primary-foreground text-xs font-medium">
                   {task.assignee.charAt(0).toUpperCase()}
                 </span>
-              </div>
-            )}
-            {task.dueDate && (
-              <span className="text-xs">{task.dueDate}</span>
-            )}
+              </div>}
+            {task.dueDate && <span className="text-xs">{task.dueDate}</span>}
           </div>
         </div>
       </CardContent>
-    </Card>
-  );
+    </Card>;
 }

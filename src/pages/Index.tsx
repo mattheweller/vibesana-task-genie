@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { TaskCard } from "@/components/TaskCard";
@@ -6,9 +7,10 @@ import { ProjectCard } from "@/components/ProjectCard";
 import { AITaskBreakdown } from "@/components/AITaskBreakdown";
 import { TaskForm } from "@/components/TaskForm";
 import { Button } from "@/components/ui/button";
-import { Plus, Search, Filter } from "lucide-react";
+import { Plus, Search, Filter, LogOut } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Task {
   id: string;
@@ -89,6 +91,15 @@ const Index = () => {
   const [taskFormOpen, setTaskFormOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | undefined>();
   const { toast } = useToast();
+  const { user, loading, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  // Redirect to auth if not authenticated
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/auth');
+    }
+  }, [user, loading, navigate]);
 
   // Listen for create task events from sidebar
   const handleCreateTask = () => {
@@ -142,6 +153,35 @@ const Index = () => {
     }
   };
 
+  const handleSignOut = async () => {
+    const { error } = await signOut();
+    if (error) {
+      toast({
+        title: "Error signing out",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Signed out",
+        description: "You have been successfully signed out.",
+      });
+    }
+  };
+
+  // Show loading or redirect if not authenticated
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-lg neon-text">LOADING...</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null; // Redirect happens in useEffect
+  }
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
@@ -154,6 +194,10 @@ const Index = () => {
             </div>
             <div className="flex items-center gap-2">
               <SidebarTrigger />
+              <Button variant="outline" className="retro-button font-bold" onClick={handleSignOut}>
+                <LogOut className="w-4 h-4 mr-2" />
+                SIGN OUT
+              </Button>
               <Button className="retro-button neon-text font-bold" onClick={handleCreateTask}>
                 <Plus className="w-4 h-4 mr-2" />
                 NEW TASK

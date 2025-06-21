@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -5,18 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
-interface Task {
-  id: string;
-  title: string;
-  description: string;
-  status: "todo" | "in-progress" | "review" | "done";
-  priority: "low" | "medium" | "high";
-  assignee?: string;
-  dueDate?: string;
-  subtasks?: number;
-  comments?: number;
-}
+import { Task } from "@/hooks/useTasks";
 
 interface TaskFormProps {
   open: boolean;
@@ -32,25 +22,25 @@ export function TaskForm({ open, onOpenChange, task, onSave }: TaskFormProps) {
     status: "todo" | "in-progress" | "review" | "done";
     priority: "low" | "medium" | "high";
     assignee: string;
-    dueDate: string;
+    due_date: string;
   }>({
     title: "",
     description: "",
     status: "todo",
     priority: "medium",
     assignee: "",
-    dueDate: "",
+    due_date: "",
   });
 
   useEffect(() => {
     if (task) {
       setFormData({
         title: task.title,
-        description: task.description,
+        description: task.description || "",
         status: task.status,
         priority: task.priority,
         assignee: task.assignee || "",
-        dueDate: task.dueDate || "",
+        due_date: task.due_date || "",
       });
     } else {
       setFormData({
@@ -59,7 +49,7 @@ export function TaskForm({ open, onOpenChange, task, onSave }: TaskFormProps) {
         status: "todo",
         priority: "medium",
         assignee: "",
-        dueDate: "",
+        due_date: "",
       });
     }
   }, [task, open]);
@@ -72,7 +62,6 @@ export function TaskForm({ open, onOpenChange, task, onSave }: TaskFormProps) {
       subtasks: 0,
       comments: 0,
     });
-    onOpenChange(false);
   };
 
   return (
@@ -108,7 +97,6 @@ export function TaskForm({ open, onOpenChange, task, onSave }: TaskFormProps) {
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               className="mt-1 retro-input"
               rows={3}
-              required
             />
           </div>
 
@@ -172,13 +160,13 @@ export function TaskForm({ open, onOpenChange, task, onSave }: TaskFormProps) {
             </div>
 
             <div>
-              <Label htmlFor="dueDate" className="font-bold uppercase text-xs tracking-wide">
+              <Label htmlFor="due_date" className="font-bold uppercase text-xs tracking-wide">
                 DUE DATE
               </Label>
               <Input
-                id="dueDate"
-                value={formData.dueDate}
-                onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+                id="due_date"
+                value={formData.due_date}
+                onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
                 className="mt-1 retro-input"
                 placeholder="Dec 25"
               />

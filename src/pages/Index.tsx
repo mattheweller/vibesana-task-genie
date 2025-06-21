@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -9,57 +10,8 @@ import { TaskForm } from "@/components/TaskForm";
 import { Button } from "@/components/ui/button";
 import { Plus, Search, Filter, LogOut } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-
-interface Task {
-  id: string;
-  title: string;
-  description: string;
-  status: "todo" | "in-progress" | "review" | "done";
-  priority: "low" | "medium" | "high";
-  assignee?: string;
-  dueDate?: string;
-  subtasks?: number;
-  comments?: number;
-}
-
-// Initial data for demonstration
-const initialTasks: Task[] = [
-  {
-    id: "1",
-    title: "Design user authentication flow",
-    description: "Create wireframes and user journey for login, signup, and password reset flows. Include social login options.",
-    status: "in-progress" as const,
-    priority: "high" as const,
-    assignee: "Alex",
-    dueDate: "Dec 25",
-    subtasks: 3,
-    comments: 2,
-  },
-  {
-    id: "2",
-    title: "Implement task management API",
-    description: "Build REST endpoints for CRUD operations on tasks, including filtering, sorting, and pagination.",
-    status: "todo" as const,
-    priority: "medium" as const,
-    assignee: "Sarah",
-    dueDate: "Dec 28",
-    subtasks: 5,
-    comments: 1,
-  },
-  {
-    id: "3",
-    title: "Set up database migrations",
-    description: "Create initial database schema and migration scripts for production deployment.",
-    status: "done" as const,
-    priority: "high" as const,
-    assignee: "Mike",
-    dueDate: "Dec 20",
-    subtasks: 2,
-    comments: 0,
-  },
-];
+import { useTasks, Task } from "@/hooks/useTasks";
 
 const mockProjects = [
   {
@@ -87,11 +39,10 @@ const mockProjects = [
 ];
 
 const Index = () => {
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const [taskFormOpen, setTaskFormOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | undefined>();
-  const { toast } = useToast();
   const { user, loading, signOut } = useAuth();
+  const { tasks, loading: tasksLoading, createTask, updateTask, deleteTask } = useTasks();
   const navigate = useNavigate();
 
   // Redirect to auth if not authenticated
@@ -114,7 +65,7 @@ const Index = () => {
     };
     window.addEventListener('createTask', handleCreateTaskEvent);
     return () => window.removeEventListener('createTask', handleCreateTaskEvent);
-  }, [handleCreateTask]);
+  }, []);
 
   const handleEditTask = (task: Task) => {
     setEditingTask(task);
@@ -122,55 +73,29 @@ const Index = () => {
   };
 
   const handleDeleteTask = (taskId: string) => {
-    setTasks(tasks.filter(t => t.id !== taskId));
-    toast({
-      title: "Task deleted",
-      description: "The task has been successfully deleted.",
-    });
+    deleteTask(taskId);
   };
 
-  const handleSaveTask = (taskData: Omit<Task, "id"> & { id?: string }) => {
+  const handleSaveTask = async (taskData: Omit<Task, "id"> & { id?: string }) => {
     if (taskData.id) {
       // Edit existing task
-      setTasks(tasks.map(t => t.id === taskData.id ? { ...taskData, id: taskData.id } : t));
-      toast({
-        title: "Task updated",
-        description: "The task has been successfully updated.",
-      });
+      await updateTask(taskData.id, taskData);
     } else {
       // Create new task
-      const newTask: Task = {
-        ...taskData,
-        id: Date.now().toString(),
-        subtasks: 0,
-        comments: 0,
-      };
-      setTasks([...tasks, newTask]);
-      toast({
-        title: "Task created",
-        description: "A new task has been successfully created.",
-      });
+      await createTask(taskData);
     }
+    setTaskFormOpen(false);
   };
 
   const handleSignOut = async () => {
     const { error } = await signOut();
-    if (error) {
-      toast({
-        title: "Error signing out",
-        description: error.message,
-        variant: "destructive",
-      });
-    } else {
-      toast({
-        title: "Signed out",
-        description: "You have been successfully signed out.",
-      });
+    if (!error) {
+      navigate('/auth');
     }
   };
 
   // Show loading or redirect if not authenticated
-  if (loading) {
+  if (loading || tasksLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-lg neon-text">LOADING...</div>
@@ -209,7 +134,7 @@ const Index = () => {
             <div className="lg:col-span-2 space-y-6">
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-semibold neon-text uppercase tracking-wider">RECENT TASKS</h2>
+                  <h2 className="text-xl font-semibold neon-text uppercase tracking-wider">YOUR TASKS</h2>
                   <div className="flex items-center gap-2">
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
@@ -221,16 +146,27 @@ const Index = () => {
                     </Button>
                   </div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {tasks.map((task) => (
-                    <TaskCard 
-                      key={task.id} 
-                      task={task} 
-                      onEdit={handleEditTask}
-                      onDelete={handleDeleteTask}
-                    />
-                  ))}
-                </div>
+                
+                {tasks.length === 0 ? (
+                  <div className="text-center py-12">
+                    <p className="text-muted-foreground font-mono mb-4">No tasks yet. Create your first task to get started!</p>
+                    <Button className="retro-button neon-text font-bold" onClick={handleCreateTask}>
+                      <Plus className="w-4 h-4 mr-2" />
+                      CREATE FIRST TASK
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {tasks.map((task) => (
+                      <TaskCard 
+                        key={task.id} 
+                        task={task} 
+                        onEdit={handleEditTask}
+                        onDelete={handleDeleteTask}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div>

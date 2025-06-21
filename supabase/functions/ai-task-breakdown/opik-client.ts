@@ -15,6 +15,7 @@ export const initializeOpik = (): Opik | null => {
       apiKey: opikApiKey,
       host: "https://www.comet.com/opik/api",
       projectName: "Vibesana",
+      workspaceName: "mattheweller",
     });
     console.log('Opik client initialized successfully');
     return opikClient;

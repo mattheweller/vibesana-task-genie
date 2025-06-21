@@ -35,7 +35,22 @@ export function useTasks() {
 
       if (error) throw error;
       
-      setTasks(data || []);
+      // Convert Supabase data to our Task type with proper type assertions
+      const typedTasks: Task[] = (data || []).map(task => ({
+        id: task.id,
+        title: task.title,
+        description: task.description || '',
+        status: task.status as "todo" | "in-progress" | "review" | "done",
+        priority: task.priority as "low" | "medium" | "high",
+        assignee: task.assignee || undefined,
+        due_date: task.due_date || undefined,
+        subtasks: task.subtasks || 0,
+        comments: task.comments || 0,
+        created_at: task.created_at,
+        updated_at: task.updated_at,
+      }));
+      
+      setTasks(typedTasks);
     } catch (error) {
       console.error('Error fetching tasks:', error);
       toast({
@@ -63,13 +78,28 @@ export function useTasks() {
 
       if (error) throw error;
 
-      setTasks(prev => [data, ...prev]);
+      // Convert the returned data to our Task type
+      const newTask: Task = {
+        id: data.id,
+        title: data.title,
+        description: data.description || '',
+        status: data.status as "todo" | "in-progress" | "review" | "done",
+        priority: data.priority as "low" | "medium" | "high",
+        assignee: data.assignee || undefined,
+        due_date: data.due_date || undefined,
+        subtasks: data.subtasks || 0,
+        comments: data.comments || 0,
+        created_at: data.created_at,
+        updated_at: data.updated_at,
+      };
+
+      setTasks(prev => [newTask, ...prev]);
       toast({
         title: "Task created",
         description: "Your task has been successfully created.",
       });
       
-      return data;
+      return newTask;
     } catch (error) {
       console.error('Error creating task:', error);
       toast({
@@ -93,13 +123,28 @@ export function useTasks() {
 
       if (error) throw error;
 
-      setTasks(prev => prev.map(task => task.id === id ? data : task));
+      // Convert the returned data to our Task type
+      const updatedTask: Task = {
+        id: data.id,
+        title: data.title,
+        description: data.description || '',
+        status: data.status as "todo" | "in-progress" | "review" | "done",
+        priority: data.priority as "low" | "medium" | "high",
+        assignee: data.assignee || undefined,
+        due_date: data.due_date || undefined,
+        subtasks: data.subtasks || 0,
+        comments: data.comments || 0,
+        created_at: data.created_at,
+        updated_at: data.updated_at,
+      };
+
+      setTasks(prev => prev.map(task => task.id === id ? updatedTask : task));
       toast({
         title: "Task updated",
         description: "Your task has been successfully updated.",
       });
       
-      return data;
+      return updatedTask;
     } catch (error) {
       console.error('Error updating task:', error);
       toast({

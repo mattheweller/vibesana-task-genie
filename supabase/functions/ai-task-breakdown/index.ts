@@ -10,24 +10,55 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Simple Opik tracking function
+// Enhanced Opik tracking function with better logging
 const trackWithOpik = async (traceData: any) => {
-  if (!opikApiKey) return;
+  if (!opikApiKey) {
+    console.log('Opik API key not found - skipping tracking');
+    return;
+  }
+  
+  console.log('Attempting to track with Opik:', {
+    traceId: traceData.id,
+    projectName: 'Vibesana',
+    hasApiKey: !!opikApiKey,
+    apiKeyPrefix: opikApiKey.substring(0, 8) + '...'
+  });
   
   try {
-    await fetch('https://www.comet.com/opik/api/v1/traces', {
+    const payload = {
+      project_name: 'Vibesana',
+      ...traceData,
+    };
+    
+    console.log('Opik payload:', JSON.stringify(payload, null, 2));
+    
+    const response = await fetch('https://www.comet.com/opik/api/v1/traces', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${opikApiKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        project_name: 'Vibesana',
-        ...traceData,
-      }),
+      body: JSON.stringify(payload),
     });
+
+    console.log('Opik response status:', response.status);
+    console.log('Opik response headers:', Object.fromEntries(response.headers.entries()));
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Opik tracking failed with status:', response.status);
+      console.error('Opik error response:', errorText);
+    } else {
+      const responseText = await response.text();
+      console.log('Opik tracking successful:', responseText);
+    }
   } catch (error) {
-    console.log('Opik tracking failed:', error);
+    console.error('Opik tracking failed with exception:', error);
+    console.error('Error details:', {
+      name: error.name,
+      message: error.message,
+      stack: error.stack
+    });
   }
 };
 

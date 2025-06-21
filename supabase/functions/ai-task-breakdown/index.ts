@@ -10,7 +10,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Enhanced Opik tracking function with better logging
+// Enhanced Opik tracking function with corrected API endpoint
 const trackWithOpik = async (traceData: any) => {
   if (!opikApiKey) {
     console.log('Opik API key not found - skipping tracking');
@@ -32,7 +32,8 @@ const trackWithOpik = async (traceData: any) => {
     
     console.log('Opik payload:', JSON.stringify(payload, null, 2));
     
-    const response = await fetch('https://www.comet.com/opik/api/v1/traces', {
+    // Updated API endpoint - using the correct Opik API URL
+    const response = await fetch('https://www.comet.com/api/v1/opik/traces', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${opikApiKey}`,

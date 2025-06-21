@@ -9,13 +9,13 @@
 @layer base {
   :root {
     --background: 20 20 35;
-    --foreground: 0 255 255;
+    --foreground: 0 0 0;
 
     --card: 30 30 50;
-    --card-foreground: 255 255 255;
+    --card-foreground: 0 0 0;
 
     --popover: 25 25 40;
-    --popover-foreground: 255 255 255;
+    --popover-foreground: 0 0 0;
 
     --primary: 255 0 255;
     --primary-foreground: 0 0 0;
@@ -24,7 +24,7 @@
     --secondary-foreground: 0 0 0;
 
     --muted: 40 40 60;
-    --muted-foreground: 180 180 255;
+    --muted-foreground: 0 0 0;
 
     --accent: 0 255 0;
     --accent-foreground: 0 0 0;
@@ -39,24 +39,24 @@
     --radius: 0rem;
 
     --sidebar-background: 15 15 25;
-    --sidebar-foreground: 0 255 255;
+    --sidebar-foreground: 0 0 0;
     --sidebar-primary: 255 0 255;
     --sidebar-primary-foreground: 0 0 0;
     --sidebar-accent: 40 40 60;
-    --sidebar-accent-foreground: 255 255 255;
+    --sidebar-accent-foreground: 0 0 0;
     --sidebar-border: 100 255 255;
     --sidebar-ring: 255 0 255;
   }
 
   .dark {
     --background: 10 10 20;
-    --foreground: 255 0 255;
+    --foreground: 0 0 0;
 
     --card: 20 20 40;
-    --card-foreground: 0 255 255;
+    --card-foreground: 0 0 0;
 
     --popover: 15 15 30;
-    --popover-foreground: 255 255 255;
+    --popover-foreground: 0 0 0;
 
     --primary: 0 255 255;
     --primary-foreground: 0 0 0;
@@ -65,10 +65,10 @@
     --secondary-foreground: 0 0 0;
 
     --muted: 30 30 50;
-    --muted-foreground: 150 255 255;
+    --muted-foreground: 0 0 0;
 
     --accent: 255 0 100;
-    --accent-foreground: 255 255 255;
+    --accent-foreground: 0 0 0;
 
     --destructive: 255 0 0;
     --destructive-foreground: 255 255 255;
@@ -77,11 +77,11 @@
     --input: 40 40 70;
     --ring: 0 255 255;
     --sidebar-background: 5 5 15;
-    --sidebar-foreground: 255 0 255;
+    --sidebar-foreground: 0 0 0;
     --sidebar-primary: 0 255 255;
     --sidebar-primary-foreground: 0 0 0;
     --sidebar-accent: 25 25 45;
-    --sidebar-accent-foreground: 255 255 255;
+    --sidebar-accent-foreground: 0 0 0;
     --sidebar-border: 255 0 255;
     --sidebar-ring: 0 255 255;
   }
@@ -151,17 +151,17 @@
   }
   
   .neon-text {
-    color: rgb(0, 255, 255);
+    color: rgb(0, 0, 0);
     text-shadow: 
-      0 0 5px rgba(0, 255, 255, 0.8),
-      0 0 10px rgba(0, 255, 255, 0.6),
-      0 0 20px rgba(0, 255, 255, 0.4);
+      0 0 5px rgba(0, 0, 0, 0.8),
+      0 0 10px rgba(0, 0, 0, 0.6),
+      0 0 20px rgba(0, 0, 0, 0.4);
   }
   
   .retro-input {
     background: rgba(20, 20, 35, 0.9);
     border: 2px solid rgb(0, 255, 255);
-    color: rgb(255, 255, 255);
+    color: rgb(0, 0, 0);
     font-family: 'Orbitron', monospace;
     box-shadow: 
       0 0 10px rgba(0, 255, 255, 0.3),
@@ -178,7 +178,7 @@
   }
   
   .retro-input::placeholder {
-    color: rgba(180, 180, 255, 0.7);
+    color: rgba(60, 60, 60, 0.7);
   }
 }
 

@@ -1,6 +1,7 @@
 
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { Opik } from "npm:opik@latest";
 
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
 const opikApiKey = Deno.env.get('OPIK_API_KEY');
@@ -10,56 +11,26 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Enhanced Opik tracking function with corrected API endpoint
-const trackWithOpik = async (traceData: any) => {
+// Initialize Opik client with proper configuration
+let opikClient: Opik | null = null;
+
+const initializeOpik = () => {
   if (!opikApiKey) {
-    console.log('Opik API key not found - skipping tracking');
-    return;
+    console.log('Opik API key not found - skipping tracking initialization');
+    return null;
   }
   
-  console.log('Attempting to track with Opik:', {
-    traceId: traceData.id,
-    projectName: 'Vibesana',
-    hasApiKey: !!opikApiKey,
-    apiKeyPrefix: opikApiKey.substring(0, 8) + '...'
-  });
-  
   try {
-    const payload = {
-      project_name: 'Vibesana',
-      ...traceData,
-    };
-    
-    console.log('Opik payload:', JSON.stringify(payload, null, 2));
-    
-    // Updated API endpoint - using the correct Opik API URL
-    const response = await fetch('https://www.comet.com/api/v1/opik/traces', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${opikApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
+    opikClient = new Opik({
+      apiKey: opikApiKey,
+      host: "https://www.comet.com/opik/api",
+      projectName: "Vibesana",
     });
-
-    console.log('Opik response status:', response.status);
-    console.log('Opik response headers:', Object.fromEntries(response.headers.entries()));
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Opik tracking failed with status:', response.status);
-      console.error('Opik error response:', errorText);
-    } else {
-      const responseText = await response.text();
-      console.log('Opik tracking successful:', responseText);
-    }
+    console.log('Opik client initialized successfully');
+    return opikClient;
   } catch (error) {
-    console.error('Opik tracking failed with exception:', error);
-    console.error('Error details:', {
-      name: error.name,
-      message: error.message,
-      stack: error.stack
-    });
+    console.error('Failed to initialize Opik client:', error);
+    return null;
   }
 };
 
@@ -70,7 +41,7 @@ serve(async (req) => {
   }
 
   const startTime = Date.now();
-  let traceId = crypto.randomUUID();
+  let trace: any = null;
 
   try {
     const { description } = await req.json();
@@ -81,14 +52,24 @@ serve(async (req) => {
 
     console.log('Processing task breakdown for:', description);
 
-    // Track the start of the AI request
-    await trackWithOpik({
-      id: traceId,
-      name: 'ai-task-breakdown',
-      start_time: new Date().toISOString(),
-      input: { description },
-      tags: ['ai-task-breakdown', 'openai'],
-    });
+    // Initialize Opik client if not already done
+    if (!opikClient) {
+      initializeOpik();
+    }
+
+    // Start a trace if Opik is available
+    if (opikClient) {
+      try {
+        trace = opikClient.trace({
+          name: 'ai-task-breakdown',
+          input: { description },
+          tags: ['ai-task-breakdown', 'openai'],
+        });
+        console.log('Opik trace started successfully');
+      } catch (error) {
+        console.error('Failed to start Opik trace:', error);
+      }
+    }
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -137,13 +118,17 @@ Return only the JSON array, no additional text.`
       const error = await response.text();
       console.error('OpenAI API error:', error);
       
-      // Track the error
-      await trackWithOpik({
-        id: traceId,
-        end_time: new Date().toISOString(),
-        output: { error: `OpenAI API error: ${response.status}` },
-        tags: ['error', 'openai-api'],
-      });
+      // Update trace with error if available
+      if (trace) {
+        try {
+          trace.update({
+            output: { error: `OpenAI API error: ${response.status}` },
+            tags: ['error', 'openai-api'],
+          });
+        } catch (traceError) {
+          console.error('Failed to update trace with error:', traceError);
+        }
+      }
       
       throw new Error(`OpenAI API error: ${response.status}`);
     }
@@ -179,19 +164,24 @@ Return only the JSON array, no additional text.`
     const endTime = Date.now();
     const duration = endTime - startTime;
 
-    // Track the successful completion
-    await trackWithOpik({
-      id: traceId,
-      end_time: new Date().toISOString(),
-      output: { tasks, task_count: tasks.length },
-      metadata: {
-        duration_ms: duration,
-        model: 'gpt-4o-mini',
-        prompt_tokens: data.usage?.prompt_tokens,
-        completion_tokens: data.usage?.completion_tokens,
-      },
-      tags: ['success', 'task-generation'],
-    });
+    // Update trace with successful completion
+    if (trace) {
+      try {
+        trace.update({
+          output: { tasks, task_count: tasks.length },
+          metadata: {
+            duration_ms: duration,
+            model: 'gpt-4o-mini',
+            prompt_tokens: data.usage?.prompt_tokens,
+            completion_tokens: data.usage?.completion_tokens,
+          },
+          tags: ['success', 'task-generation'],
+        });
+        console.log('Opik trace updated successfully');
+      } catch (traceError) {
+        console.error('Failed to update trace:', traceError);
+      }
+    }
 
     return new Response(JSON.stringify({ tasks }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -200,13 +190,17 @@ Return only the JSON array, no additional text.`
   } catch (error) {
     console.error('Error in ai-task-breakdown function:', error);
     
-    // Track the error
-    await trackWithOpik({
-      id: traceId,
-      end_time: new Date().toISOString(),
-      output: { error: error.message },
-      tags: ['error', 'function-error'],
-    });
+    // Update trace with error if available
+    if (trace) {
+      try {
+        trace.update({
+          output: { error: error.message },
+          tags: ['error', 'function-error'],
+        });
+      } catch (traceError) {
+        console.error('Failed to update trace with error:', traceError);
+      }
+    }
     
     return new Response(JSON.stringify({ 
       error: error.message,

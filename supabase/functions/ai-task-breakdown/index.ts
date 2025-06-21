@@ -22,7 +22,7 @@ const trackWithOpik = async (traceData: any) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        project_name: 'dVibesanaefault',
+        project_name: 'Vibesana',
         ...traceData,
       }),
     });

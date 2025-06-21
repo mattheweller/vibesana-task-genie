@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -67,10 +66,13 @@ export function useTasks() {
     if (!user) return;
 
     try {
+      // Remove id from taskData if it exists and prepare data for insertion
+      const { id, created_at, updated_at, ...dataToInsert } = taskData as any;
+      
       const { data, error } = await supabase
         .from('tasks')
         .insert([{
-          ...taskData,
+          ...dataToInsert,
           user_id: user.id,
         }])
         .select()

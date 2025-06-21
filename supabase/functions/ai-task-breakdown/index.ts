@@ -33,8 +33,8 @@ serve(async (req) => {
     const endTime = Date.now();
     const duration = endTime - startTime;
 
-    // Update trace with successful completion
-    updateTraceSuccess(trace, tasks, duration);
+    // Update trace with successful completion (now awaited to ensure flush)
+    await updateTraceSuccess(trace, tasks, duration);
 
     const response: TaskBreakdownResponse = { tasks };
     
@@ -45,8 +45,8 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in ai-task-breakdown function:', error);
     
-    // Update trace with error if available
-    updateTraceError(trace, error.message);
+    // Update trace with error if available (now awaited to ensure flush)
+    await updateTraceError(trace, error.message);
     
     const errorResponse: ErrorResponse = { 
       error: error.message,

@@ -23,7 +23,7 @@ export const createTrace = (description: string) => {
   }
 };
 
-export const updateTraceSuccess = (trace: any, tasks: Task[], duration: number, usage?: any) => {
+export const updateTraceSuccess = async (trace: any, tasks: Task[], duration: number, usage?: any) => {
   if (!trace) return;
 
   try {
@@ -37,13 +37,21 @@ export const updateTraceSuccess = (trace: any, tasks: Task[], duration: number, 
       },
       tags: ['success', 'task-generation'],
     });
+    
+    // Flush the client to send the trace
+    const opikClient = getOpikClient();
+    if (opikClient) {
+      await opikClient.flush();
+      console.log('Opik trace flushed successfully');
+    }
+    
     console.log('Opik trace updated successfully');
   } catch (traceError) {
     console.error('Failed to update trace:', traceError);
   }
 };
 
-export const updateTraceError = (trace: any, error: string) => {
+export const updateTraceError = async (trace: any, error: string) => {
   if (!trace) return;
 
   try {
@@ -51,6 +59,13 @@ export const updateTraceError = (trace: any, error: string) => {
       output: { error },
       tags: ['error', 'function-error'],
     });
+    
+    // Flush the client to send the trace even on error
+    const opikClient = getOpikClient();
+    if (opikClient) {
+      await opikClient.flush();
+      console.log('Opik trace flushed after error');
+    }
   } catch (traceError) {
     console.error('Failed to update trace with error:', traceError);
   }

@@ -15,6 +15,8 @@ interface TaskCardProps {
     subtasks?: number;
     comments?: number;
   };
+  onEdit?: (task: TaskCardProps['task']) => void;
+  onDelete?: (taskId: string) => void;
 }
 const statusColors = {
   "todo": "bg-gray-100 text-gray-700",
@@ -28,7 +30,9 @@ const priorityColors = {
   "high": "bg-destructive/20 text-destructive border-destructive"
 };
 export function TaskCard({
-  task
+  task,
+  onEdit,
+  onDelete
 }: TaskCardProps) {
   return <Card className="retro-card hover:shadow-2xl transition-all cursor-pointer group border-0">
       <CardHeader className="pb-3">
@@ -52,9 +56,16 @@ export function TaskCard({
                 <Bot size={14} className="mr-2" />
                 Break down with AI
               </DropdownMenuItem>
-              <DropdownMenuItem>Edit task</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onEdit?.(task)}>
+                Edit task
+              </DropdownMenuItem>
               <DropdownMenuItem>Duplicate</DropdownMenuItem>
-              <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+              <DropdownMenuItem 
+                className="text-destructive" 
+                onClick={() => onDelete?.(task.id)}
+              >
+                Delete
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

@@ -157,6 +157,29 @@
       0 0 10px rgba(0, 255, 255, 0.6),
       0 0 20px rgba(0, 255, 255, 0.4);
   }
+  
+  .retro-input {
+    background: rgba(20, 20, 35, 0.9);
+    border: 2px solid rgb(0, 255, 255);
+    color: rgb(255, 255, 255);
+    font-family: 'Orbitron', monospace;
+    box-shadow: 
+      0 0 10px rgba(0, 255, 255, 0.3),
+      inset 0 0 10px rgba(255, 0, 255, 0.1);
+    transition: all 0.3s ease;
+  }
+  
+  .retro-input:focus {
+    box-shadow: 
+      0 0 20px rgba(0, 255, 255, 0.6),
+      inset 0 0 20px rgba(255, 0, 255, 0.2);
+    border-color: rgb(255, 0, 255);
+    outline: none;
+  }
+  
+  .retro-input::placeholder {
+    color: rgba(180, 180, 255, 0.7);
+  }
 }
 
 @keyframes retro-bg {

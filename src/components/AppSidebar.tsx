@@ -80,7 +80,16 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <div className="px-3">
-              <Button size="sm" className="w-full justify-start gap-2 retro-button font-bold" variant="outline">
+              <Button 
+                size="sm" 
+                className="w-full justify-start gap-2 retro-button font-bold" 
+                variant="outline"
+                onClick={() => {
+                  // This will be handled by the parent component
+                  const event = new CustomEvent('createTask');
+                  window.dispatchEvent(event);
+                }}
+              >
                 <Plus size={14} />
                 NEW TASK
               </Button>

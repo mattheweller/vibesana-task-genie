@@ -1,14 +1,29 @@
+import { useState, useEffect } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { TaskCard } from "@/components/TaskCard";
 import { ProjectCard } from "@/components/ProjectCard";
 import { AITaskBreakdown } from "@/components/AITaskBreakdown";
+import { TaskForm } from "@/components/TaskForm";
 import { Button } from "@/components/ui/button";
 import { Plus, Search, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
 
-// Mock data for demonstration
-const mockTasks = [
+interface Task {
+  id: string;
+  title: string;
+  description: string;
+  status: "todo" | "in-progress" | "review" | "done";
+  priority: "low" | "medium" | "high";
+  assignee?: string;
+  dueDate?: string;
+  subtasks?: number;
+  comments?: number;
+}
+
+// Initial data for demonstration
+const initialTasks: Task[] = [
   {
     id: "1",
     title: "Design user authentication flow",
@@ -70,6 +85,63 @@ const mockProjects = [
 ];
 
 const Index = () => {
+  const [tasks, setTasks] = useState<Task[]>(initialTasks);
+  const [taskFormOpen, setTaskFormOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | undefined>();
+  const { toast } = useToast();
+
+  // Listen for create task events from sidebar
+  const handleCreateTask = () => {
+    setEditingTask(undefined);
+    setTaskFormOpen(true);
+  };
+
+  // Listen for create task events from sidebar
+  useEffect(() => {
+    const handleCreateTaskEvent = () => {
+      handleCreateTask();
+    };
+    window.addEventListener('createTask', handleCreateTaskEvent);
+    return () => window.removeEventListener('createTask', handleCreateTaskEvent);
+  }, [handleCreateTask]);
+
+  const handleEditTask = (task: Task) => {
+    setEditingTask(task);
+    setTaskFormOpen(true);
+  };
+
+  const handleDeleteTask = (taskId: string) => {
+    setTasks(tasks.filter(t => t.id !== taskId));
+    toast({
+      title: "Task deleted",
+      description: "The task has been successfully deleted.",
+    });
+  };
+
+  const handleSaveTask = (taskData: Omit<Task, "id"> & { id?: string }) => {
+    if (taskData.id) {
+      // Edit existing task
+      setTasks(tasks.map(t => t.id === taskData.id ? { ...taskData, id: taskData.id } : t));
+      toast({
+        title: "Task updated",
+        description: "The task has been successfully updated.",
+      });
+    } else {
+      // Create new task
+      const newTask: Task = {
+        ...taskData,
+        id: Date.now().toString(),
+        subtasks: 0,
+        comments: 0,
+      };
+      setTasks([...tasks, newTask]);
+      toast({
+        title: "Task created",
+        description: "A new task has been successfully created.",
+      });
+    }
+  };
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
@@ -82,7 +154,7 @@ const Index = () => {
             </div>
             <div className="flex items-center gap-2">
               <SidebarTrigger />
-              <Button className="retro-button neon-text font-bold">
+              <Button className="retro-button neon-text font-bold" onClick={handleCreateTask}>
                 <Plus className="w-4 h-4 mr-2" />
                 NEW TASK
               </Button>
@@ -106,8 +178,13 @@ const Index = () => {
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {mockTasks.map((task) => (
-                    <TaskCard key={task.id} task={task} />
+                  {tasks.map((task) => (
+                    <TaskCard 
+                      key={task.id} 
+                      task={task} 
+                      onEdit={handleEditTask}
+                      onDelete={handleDeleteTask}
+                    />
                   ))}
                 </div>
               </div>
@@ -128,6 +205,13 @@ const Index = () => {
           </div>
         </main>
       </div>
+      
+      <TaskForm
+        open={taskFormOpen}
+        onOpenChange={setTaskFormOpen}
+        task={editingTask}
+        onSave={handleSaveTask}
+      />
     </SidebarProvider>
   );
 };

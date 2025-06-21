@@ -66,19 +66,35 @@ export function useTasks() {
     if (!user) return;
 
     try {
-      // Remove id from taskData if it exists and prepare data for insertion
-      const { id, created_at, updated_at, ...dataToInsert } = taskData as any;
+      console.log('Creating task with data:', taskData);
+      
+      // Prepare data for insertion - only include fields that should be sent to database
+      const insertData = {
+        title: taskData.title,
+        description: taskData.description || '',
+        status: taskData.status,
+        priority: taskData.priority,
+        assignee: taskData.assignee || null,
+        due_date: taskData.due_date || null,
+        subtasks: taskData.subtasks || 0,
+        comments: taskData.comments || 0,
+        user_id: user.id,
+      };
+      
+      console.log('Insert data:', insertData);
       
       const { data, error } = await supabase
         .from('tasks')
-        .insert([{
-          ...dataToInsert,
-          user_id: user.id,
-        }])
+        .insert([insertData])
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+
+      console.log('Task created successfully:', data);
 
       // Convert the returned data to our Task type
       const newTask: Task = {

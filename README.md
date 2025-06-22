@@ -60,6 +60,46 @@ Our platform bridges the gap between high-level project planning and day-to-day 
 
 ---
 
+## 🔬 AI Optimization with Comet Opik
+
+Vibesana integrates with [**Comet Opik**](https://www.comet.com/opik) to provide advanced AI optimization and monitoring capabilities for the task breakdown functionality.
+
+### 🎯 **What is Comet Opik?**
+
+Comet Opik is an end-to-end LLMOps platform that helps teams build, evaluate, and monitor AI applications. In Vibesana, Opik powers intelligent task optimization and complexity analysis.
+
+### 🧠 **AI Task Optimization Features**
+
+- **Complexity Scoring**: Automatically analyze task complexity to determine optimal breakdown levels
+- **Intelligent Sub-tasking**: Generate additional sub-tasks when a task is deemed too complex
+- **Performance Monitoring**: Track AI model performance and task generation quality
+- **Optimization Insights**: Get data-driven insights to improve task breakdown accuracy
+
+### 📊 **How It Works**
+
+1. **Task Analysis**: When you use AI Task Breakdown, Opik analyzes the generated tasks
+2. **Complexity Assessment**: Each task receives a complexity score based on multiple factors
+3. **Automatic Refinement**: Tasks exceeding complexity thresholds are automatically broken down further
+4. **Continuous Learning**: The system learns from user interactions to improve future task generation
+
+### 🔧 **Benefits for Teams**
+
+- **Reduced Overwhelm**: Complex tasks are automatically broken into manageable pieces
+- **Better Planning**: More accurate time estimates through intelligent task sizing
+- **Improved Productivity**: Teams can focus on execution rather than task planning
+- **Data-Driven Insights**: Understanding of what makes tasks effective for your team
+
+### 📈 **Monitoring & Analytics**
+
+Opik provides comprehensive monitoring for the AI task breakdown process:
+
+- **Generation Quality Metrics**: Track the effectiveness of AI-generated tasks
+- **User Satisfaction Scoring**: Monitor how well generated tasks meet user needs
+- **Performance Optimization**: Continuous improvement of task breakdown algorithms
+- **Usage Analytics**: Understand patterns in how your team uses AI assistance
+
+---
+
 ## 🛠 Tech Stack
 
 Vibesana is built on modern, battle-tested technologies:
@@ -72,6 +112,7 @@ Vibesana is built on modern, battle-tested technologies:
 | **Tailwind CSS** | Styling | 3.0+ |
 | **Shadcn/UI** | Component Library | Latest |
 | **Supabase** | Backend & Database | 2.50+ |
+| **Comet Opik** | AI Optimization | Latest |
 | **@dnd-kit** | Drag & Drop | 6.3+ |
 | **React Query** | Data Fetching | 5.56+ |
 | **Lucide React** | Icons | Latest |

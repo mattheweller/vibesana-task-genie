@@ -8,6 +8,7 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
+  useDroppable,
 } from '@dnd-kit/core';
 import {
   SortableContext,
@@ -74,6 +75,30 @@ function SortableTask({ task, onEdit, onDelete }: SortableTaskProps) {
   );
 }
 
+interface DroppableColumnProps {
+  id: string;
+  children: React.ReactNode;
+}
+
+function DroppableColumn({ id, children }: DroppableColumnProps) {
+  const { isOver, setNodeRef } = useDroppable({
+    id,
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={`min-h-[200px] p-2 rounded-lg border-2 border-dashed transition-all ${
+        isOver 
+          ? 'border-primary bg-primary/10 border-solid' 
+          : 'border-muted-foreground/20'
+      }`}
+    >
+      {children}
+    </div>
+  );
+}
+
 export function TaskBoard({ tasks, onEdit, onDelete, onStatusChange }: TaskBoardProps) {
   const [activeTask, setActiveTask] = React.useState<Task | null>(null);
   
@@ -108,6 +133,7 @@ export function TaskBoard({ tasks, onEdit, onDelete, onStatusChange }: TaskBoard
     if (targetStatus) {
       const task = tasks.find(t => t.id === taskId);
       if (task && task.status !== targetStatus.id) {
+        console.log(`Moving task ${taskId} from ${task.status} to ${targetStatus.id}`);
         onStatusChange(taskId, targetStatus.id);
       }
     }
@@ -134,14 +160,10 @@ export function TaskBoard({ tasks, onEdit, onDelete, onStatusChange }: TaskBoard
                 </Badge>
               </div>
               
-              <SortableContext
-                items={columnTasks.map(task => task.id)}
-                strategy={verticalListSortingStrategy}
-                id={column.id}
-              >
-                <div
-                  className="min-h-[200px] p-2 rounded-lg border-2 border-dashed border-muted-foreground/20 transition-all"
-                  data-status={column.id}
+              <DroppableColumn id={column.id}>
+                <SortableContext
+                  items={columnTasks.map(task => task.id)}
+                  strategy={verticalListSortingStrategy}
                 >
                   <div className="space-y-3">
                     {columnTasks.map((task) => (
@@ -159,8 +181,8 @@ export function TaskBoard({ tasks, onEdit, onDelete, onStatusChange }: TaskBoard
                       Drop tasks here
                     </div>
                   )}
-                </div>
-              </SortableContext>
+                </SortableContext>
+              </DroppableColumn>
             </div>
           );
         })}

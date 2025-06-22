@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTasks, Task } from "@/hooks/useTasks";
 import { useToast } from "@/hooks/use-toast";
+import { TutorialModal } from "@/components/TutorialModal";
 
 const mockProjects = [
   {
@@ -61,6 +62,7 @@ const Index = () => {
     status: [],
     priority: []
   });
+  const [showTutorial, setShowTutorial] = useState(false);
   const { user, loading, signOut } = useAuth();
   const { tasks, loading: tasksLoading, createTask, updateTask, deleteTask, refetch } = useTasks();
   const { toast } = useToast();
@@ -108,6 +110,27 @@ const Index = () => {
       navigate('/auth');
     }
   }, [user, loading, navigate]);
+
+  // Check if user should see tutorial
+  useEffect(() => {
+    if (user && !loading) {
+      const hasSeenTutorial = localStorage.getItem(`tutorial-seen-${user.id}`);
+      if (!hasSeenTutorial) {
+        setShowTutorial(true);
+      }
+    }
+  }, [user, loading]);
+
+  const handleTutorialClose = () => {
+    if (user) {
+      localStorage.setItem(`tutorial-seen-${user.id}`, 'true');
+    }
+    setShowTutorial(false);
+    toast({
+      title: "Welcome to Vibesana! 🚀",
+      description: "Ready to revolutionize your productivity? Create your first task to get started!",
+    });
+  };
 
   // Listen for create task events from sidebar
   const handleCreateTask = () => {
@@ -431,6 +454,11 @@ const Index = () => {
           onOpenChange={setFilterDialogOpen}
           filters={filters}
           onFiltersChange={setFilters}
+        />
+
+        <TutorialModal
+          open={showTutorial}
+          onClose={handleTutorialClose}
         />
       </SidebarProvider>
     </ErrorBoundary>

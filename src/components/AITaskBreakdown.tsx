@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Bot, Plus, Sparkles } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Bot, Plus, Sparkles, AlertCircle, CheckCircle } from "lucide-react";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -17,26 +18,34 @@ export function AITaskBreakdown({ onTasksGenerated }: AITaskBreakdownProps) {
   const [taskDescription, setTaskDescription] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [suggestions, setSuggestions] = useState<Omit<Task, 'id' | 'created_at' | 'updated_at'>[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [isCreatingTasks, setIsCreatingTasks] = useState(false);
   const { toast } = useToast();
 
   const handleAnalyze = async () => {
     if (!taskDescription.trim()) return;
     
     setIsAnalyzing(true);
+    setError(null);
+    setSuggestions([]);
     
     try {
       console.log('Calling AI task breakdown for:', taskDescription);
       
-      const { data, error } = await supabase.functions.invoke('ai-task-breakdown', {
+      const { data, error: supabaseError } = await supabase.functions.invoke('ai-task-breakdown', {
         body: { description: taskDescription }
       });
 
-      if (error) {
-        console.error('Supabase function error:', error);
-        throw error;
+      if (supabaseError) {
+        console.error('Supabase function error:', supabaseError);
+        throw new Error(`AI service error: ${supabaseError.message}`);
       }
 
       console.log('AI breakdown response:', data);
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
 
       if (data.tasks && Array.isArray(data.tasks)) {
         setSuggestions(data.tasks);
@@ -47,15 +56,18 @@ export function AITaskBreakdown({ onTasksGenerated }: AITaskBreakdownProps) {
           description: `AI generated ${data.tasks.length} tasks for your project.`,
         });
       } else {
-        throw new Error('Invalid response format from AI');
+        throw new Error('Invalid response format from AI service');
       }
 
     } catch (error) {
       console.error('Error generating task breakdown:', error);
       
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      setError(errorMessage);
+      
       toast({
         title: "Error generating tasks",
-        description: "Could not generate task breakdown. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -63,19 +75,53 @@ export function AITaskBreakdown({ onTasksGenerated }: AITaskBreakdownProps) {
     }
   };
 
-  const createTaskFromSuggestion = (suggestion: Omit<Task, 'id' | 'created_at' | 'updated_at'>) => {
-    // Dispatch a custom event that the parent component can listen to
-    window.dispatchEvent(new CustomEvent('createTaskFromAI', { 
-      detail: suggestion 
-    }));
-  };
-
-  const createAllTasks = () => {
-    suggestions.forEach(suggestion => {
+  const createTaskFromSuggestion = async (suggestion: Omit<Task, 'id' | 'created_at' | 'updated_at'>) => {
+    setIsCreatingTasks(true);
+    try {
+      // Dispatch a custom event that the parent component can listen to
       window.dispatchEvent(new CustomEvent('createTaskFromAI', { 
         detail: suggestion 
       }));
-    });
+      
+      toast({
+        title: "Task created",
+        description: `"${suggestion.title}" has been added to your tasks.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error creating task",
+        description: "Failed to create task. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreatingTasks(false);
+    }
+  };
+
+  const createAllTasks = async () => {
+    if (suggestions.length === 0) return;
+    
+    setIsCreatingTasks(true);
+    try {
+      suggestions.forEach(suggestion => {
+        window.dispatchEvent(new CustomEvent('createTaskFromAI', { 
+          detail: suggestion 
+        }));
+      });
+      
+      toast({
+        title: "All tasks created",
+        description: `${suggestions.length} tasks have been added to your project.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error creating tasks",
+        description: "Failed to create some tasks. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreatingTasks(false);
+    }
   };
 
   return (
@@ -96,6 +142,7 @@ export function AITaskBreakdown({ onTasksGenerated }: AITaskBreakdownProps) {
             value={taskDescription}
             onChange={(e) => setTaskDescription(e.target.value)}
             className="min-h-[100px]"
+            disabled={isAnalyzing}
           />
         </div>
         
@@ -116,6 +163,15 @@ export function AITaskBreakdown({ onTasksGenerated }: AITaskBreakdownProps) {
             </>
           )}
         </Button>
+
+        {error && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              {error}
+            </AlertDescription>
+          </Alert>
+        )}
 
         {suggestions.length > 0 && (
           <div className="space-y-3">
@@ -145,9 +201,14 @@ export function AITaskBreakdown({ onTasksGenerated }: AITaskBreakdownProps) {
                     size="sm"
                     variant="outline"
                     onClick={() => createTaskFromSuggestion(suggestion)}
+                    disabled={isCreatingTasks}
                     className="ml-2 retro-button"
                   >
-                    <Plus className="w-3 h-3 mr-1" />
+                    {isCreatingTasks ? (
+                      <Sparkles className="w-3 h-3 mr-1 animate-spin" />
+                    ) : (
+                      <Plus className="w-3 h-3 mr-1" />
+                    )}
                     ADD
                   </Button>
                 </div>
@@ -158,9 +219,19 @@ export function AITaskBreakdown({ onTasksGenerated }: AITaskBreakdownProps) {
               variant="outline" 
               className="w-full retro-button font-bold"
               onClick={createAllTasks}
+              disabled={isCreatingTasks}
             >
-              <Plus className="w-4 h-4 mr-2" />
-              CREATE ALL TASKS
+              {isCreatingTasks ? (
+                <>
+                  <Sparkles className="w-4 h-4 mr-2 animate-spin" />
+                  CREATING TASKS...
+                </>
+              ) : (
+                <>
+                  <Plus className="w-4 h-4 mr-2" />
+                  CREATE ALL TASKS
+                </>
+              )}
             </Button>
           </div>
         )}

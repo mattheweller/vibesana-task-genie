@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { Task } from '@/hooks/useTasks';
 import { TaskCard } from './TaskCard';

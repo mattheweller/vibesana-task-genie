@@ -13,7 +13,7 @@ export const initializeOpik = (): Opik | null => {
   try {
     opikClient = new Opik({
       apiKey: opikApiKey,
-      host: "https://www.comet.com/opik/api",
+      apiUrl: "https://www.comet.com/opik/api",
       projectName: "Vibesana",
       workspaceName: "mattheweller",
     });

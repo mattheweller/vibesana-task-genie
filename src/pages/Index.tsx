@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
@@ -9,6 +8,7 @@ import { AITaskBreakdown } from "@/components/AITaskBreakdown";
 import { TaskForm } from "@/components/TaskForm";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { TasksLoadingSkeleton } from "@/components/TasksLoadingSkeleton";
+import { TaskFilterDialog } from "@/components/TaskFilterDialog";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -42,13 +42,60 @@ const mockProjects = [
   },
 ];
 
+interface TaskFilters {
+  status: string[];
+  priority: string[];
+}
+
 const Index = () => {
   const [taskFormOpen, setTaskFormOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | undefined>();
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterDialogOpen, setFilterDialogOpen] = useState(false);
+  const [filters, setFilters] = useState<TaskFilters>({
+    status: [],
+    priority: []
+  });
   const { user, loading, signOut } = useAuth();
   const { tasks, loading: tasksLoading, createTask, updateTask, deleteTask, refetch } = useTasks();
   const navigate = useNavigate();
+
+  // Filter and search tasks
+  const filteredTasks = useMemo(() => {
+    let filtered = tasks;
+
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(task => 
+        task.title.toLowerCase().includes(query) ||
+        task.description.toLowerCase().includes(query) ||
+        (task.assignee && task.assignee.toLowerCase().includes(query))
+      );
+    }
+
+    // Apply status filter
+    if (filters.status.length > 0) {
+      filtered = filtered.filter(task => filters.status.includes(task.status));
+    }
+
+    // Apply priority filter
+    if (filters.priority.length > 0) {
+      filtered = filtered.filter(task => filters.priority.includes(task.priority));
+    }
+
+    return filtered;
+  }, [tasks, searchQuery, filters]);
+
+  // Clear all filters
+  const clearFilters = () => {
+    setSearchQuery("");
+    setFilters({ status: [], priority: [] });
+  };
+
+  // Check if any filters are active
+  const hasActiveFilters = searchQuery.trim() || filters.status.length > 0 || filters.priority.length > 0;
 
   // Redirect to auth if not authenticated
   useEffect(() => {
@@ -179,11 +226,24 @@ const Index = () => {
                     <div className="flex items-center gap-2">
                       <div className="relative">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                        <Input placeholder="Search tasks..." className="pl-9 w-64" />
+                        <Input 
+                          placeholder="Search tasks..." 
+                          className="pl-9 w-64" 
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                        />
                       </div>
-                      <Button variant="outline" size="sm" className="retro-button">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="retro-button"
+                        onClick={() => setFilterDialogOpen(true)}
+                      >
                         <Filter className="w-4 h-4 mr-2" />
                         FILTER
+                        {hasActiveFilters && (
+                          <span className="ml-1 bg-primary text-primary-foreground rounded-full w-2 h-2"></span>
+                        )}
                       </Button>
                       <Button 
                         variant="outline" 
@@ -201,20 +261,51 @@ const Index = () => {
                       </Button>
                     </div>
                   </div>
+
+                  {hasActiveFilters && (
+                    <div className="flex items-center gap-2 mb-4 p-3 bg-muted/50 rounded-lg">
+                      <span className="text-sm font-mono text-muted-foreground">
+                        Showing {filteredTasks.length} of {tasks.length} tasks
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={clearFilters}
+                        className="text-xs h-6 px-2"
+                      >
+                        CLEAR FILTERS
+                      </Button>
+                    </div>
+                  )}
                   
                   {tasksLoading ? (
                     <TasksLoadingSkeleton />
-                  ) : tasks.length === 0 ? (
+                  ) : filteredTasks.length === 0 ? (
                     <div className="text-center py-12">
-                      <p className="text-muted-foreground font-mono mb-4">No tasks yet. Create your first task to get started!</p>
-                      <Button className="retro-button neon-text font-bold" onClick={handleCreateTask}>
-                        <Plus className="w-4 h-4 mr-2" />
-                        CREATE FIRST TASK
-                      </Button>
+                      {tasks.length === 0 ? (
+                        <>
+                          <p className="text-muted-foreground font-mono mb-4">No tasks yet. Create your first task to get started!</p>
+                          <Button className="retro-button neon-text font-bold" onClick={handleCreateTask}>
+                            <Plus className="w-4 h-4 mr-2" />
+                            CREATE FIRST TASK
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-muted-foreground font-mono mb-4">No tasks match your current filters.</p>
+                          <Button 
+                            variant="outline" 
+                            className="retro-button" 
+                            onClick={clearFilters}
+                          >
+                            CLEAR FILTERS
+                          </Button>
+                        </>
+                      )}
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {tasks.map((task) => (
+                      {filteredTasks.map((task) => (
                         <TaskCard 
                           key={task.id} 
                           task={task} 
@@ -252,6 +343,13 @@ const Index = () => {
           onOpenChange={setTaskFormOpen}
           task={editingTask}
           onSave={handleSaveTask}
+        />
+
+        <TaskFilterDialog
+          open={filterDialogOpen}
+          onOpenChange={setFilterDialogOpen}
+          filters={filters}
+          onFiltersChange={setFilters}
         />
       </SidebarProvider>
     </ErrorBoundary>

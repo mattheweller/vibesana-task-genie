@@ -12,7 +12,7 @@
 [![Supabase](https://img.shields.io/badge/Supabase-Backend-green?style=flat-square&logo=supabase)](https://supabase.com/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-06B6D4?style=flat-square&logo=tailwindcss)](https://tailwindcss.com/)
 
-[🌟 Live Demo](https://lovable.dev/projects/4c111fe0-32cc-45f0-8361-551ca71158ef) • [📖 Documentation](https://docs.lovable.dev/) • [💬 Discord Community](https://discord.com/channels/1119885301872070706/1280461670979993613)
+[🌟 Live Demo](https://vibesana-task-genie.lovable.app/) • [📖 Documentation](https://docs.lovable.dev/) • [💬 Discord Community](https://discord.com/channels/1119885301872070706/1280461670979993613)
 
 </div>
 
@@ -284,6 +284,6 @@ This project is built with [Lovable](https://lovable.dev) and follows their term
 
 *Transform your productivity with Vibesana - where AI meets intuitive design*
 
-[🚀 Get Started Now](https://lovable.dev/projects/4c111fe0-32cc-45f0-8361-551ca71158ef) • [⭐ Star on GitHub](#) • [🐛 Report Bug](#) • [💡 Request Feature](#)
+[🚀 Get Started Now](https://vibesana-task-genie.lovable.app/) • [⭐ Star on GitHub](#) • [🐛 Report Bug](#) • [💡 Request Feature](#)
 
 </div>

@@ -1,6 +1,20 @@
 
 import React from 'react';
-import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
+import {
+  DndContext,
+  DragEndEvent,
+  DragOverlay,
+  DragStartEvent,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { Task } from '@/hooks/useTasks';
 import { TaskCard } from './TaskCard';
 import { Badge } from '@/components/ui/badge';
@@ -19,28 +33,92 @@ const statusColumns = [
   { id: 'done', label: 'DONE', icon: '✅' },
 ] as const;
 
-export function TaskBoard({ tasks, onEdit, onDelete, onStatusChange }: TaskBoardProps) {
-  const handleDragEnd = (result: DropResult) => {
-    const { destination, source, draggableId } = result;
+interface SortableTaskProps {
+  task: Task;
+  onEdit?: (task: Task) => void;
+  onDelete?: (taskId: string) => void;
+}
 
-    // If no destination or dropped in same position, do nothing
-    if (!destination || 
-        (destination.droppableId === source.droppableId && 
-         destination.index === source.index)) {
-      return;
-    }
+function SortableTask({ task, onEdit, onDelete }: SortableTaskProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: task.id });
 
-    // Update task status
-    const newStatus = destination.droppableId as Task['status'];
-    onStatusChange(draggableId, newStatus);
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
   };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className={`cursor-grab active:cursor-grabbing ${
+        isDragging ? 'z-50' : ''
+      }`}
+    >
+      <TaskCard
+        task={task}
+        onEdit={onEdit}
+        onDelete={onDelete}
+      />
+    </div>
+  );
+}
+
+export function TaskBoard({ tasks, onEdit, onDelete, onStatusChange }: TaskBoardProps) {
+  const [activeTask, setActiveTask] = React.useState<Task | null>(null);
+  
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
 
   const getTasksByStatus = (status: Task['status']) => {
     return tasks.filter(task => task.status === status);
   };
 
+  const handleDragStart = (event: DragStartEvent) => {
+    const task = tasks.find(t => t.id === event.active.id);
+    setActiveTask(task || null);
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveTask(null);
+
+    if (!over) return;
+
+    const taskId = active.id as string;
+    const overId = over.id as string;
+
+    // Check if we're dropping on a status column
+    const targetStatus = statusColumns.find(col => col.id === overId);
+    if (targetStatus) {
+      const task = tasks.find(t => t.id === taskId);
+      if (task && task.status !== targetStatus.id) {
+        onStatusChange(taskId, targetStatus.id);
+      }
+    }
+  };
+
   return (
-    <DragDropContext onDragEnd={handleDragEnd}>
+    <DndContext
+      sensors={sensors}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+    >
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {statusColumns.map((column) => {
           const columnTasks = getTasksByStatus(column.id);
@@ -56,59 +134,49 @@ export function TaskBoard({ tasks, onEdit, onDelete, onStatusChange }: TaskBoard
                 </Badge>
               </div>
               
-              <Droppable droppableId={column.id}>
-                {(provided, snapshot) => (
-                  <div
-                    ref={provided.innerRef}
-                    {...provided.droppableProps}
-                    className={`min-h-[200px] p-2 rounded-lg border-2 border-dashed transition-all ${
-                      snapshot.isDraggingOver 
-                        ? 'border-primary bg-primary/10' 
-                        : 'border-muted-foreground/20'
-                    }`}
-                  >
-                    <div className="space-y-3">
-                      {columnTasks.map((task, index) => (
-                        <Draggable 
-                          key={task.id} 
-                          draggableId={task.id} 
-                          index={index}
-                        >
-                          {(provided, snapshot) => (
-                            <div
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              {...provided.dragHandleProps}
-                              className={`transition-transform ${
-                                snapshot.isDragging 
-                                  ? 'rotate-2 scale-105 shadow-2xl' 
-                                  : ''
-                              }`}
-                            >
-                              <TaskCard
-                                task={task}
-                                onEdit={onEdit}
-                                onDelete={onDelete}
-                              />
-                            </div>
-                          )}
-                        </Draggable>
-                      ))}
-                    </div>
-                    {provided.placeholder}
-                    
-                    {columnTasks.length === 0 && !snapshot.isDraggingOver && (
-                      <div className="flex items-center justify-center h-32 text-muted-foreground font-mono text-sm">
-                        Drop tasks here
-                      </div>
-                    )}
+              <SortableContext
+                items={columnTasks.map(task => task.id)}
+                strategy={verticalListSortingStrategy}
+                id={column.id}
+              >
+                <div
+                  className="min-h-[200px] p-2 rounded-lg border-2 border-dashed border-muted-foreground/20 transition-all"
+                  data-status={column.id}
+                >
+                  <div className="space-y-3">
+                    {columnTasks.map((task) => (
+                      <SortableTask
+                        key={task.id}
+                        task={task}
+                        onEdit={onEdit}
+                        onDelete={onDelete}
+                      />
+                    ))}
                   </div>
-                )}
-              </Droppable>
+                  
+                  {columnTasks.length === 0 && (
+                    <div className="flex items-center justify-center h-32 text-muted-foreground font-mono text-sm">
+                      Drop tasks here
+                    </div>
+                  )}
+                </div>
+              </SortableContext>
             </div>
           );
         })}
       </div>
-    </DragDropContext>
+
+      <DragOverlay>
+        {activeTask ? (
+          <div className="rotate-2 scale-105 shadow-2xl">
+            <TaskCard
+              task={activeTask}
+              onEdit={onEdit}
+              onDelete={onDelete}
+            />
+          </div>
+        ) : null}
+      </DragOverlay>
+    </DndContext>
   );
 }

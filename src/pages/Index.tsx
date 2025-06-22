@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { TaskCard } from "@/components/TaskCard";
+import { TaskBoard } from "@/components/TaskBoard";
+import { TaskViewToggle } from "@/components/TaskViewToggle";
 import { ProjectCard } from "@/components/ProjectCard";
 import { AITaskBreakdown } from "@/components/AITaskBreakdown";
 import { TaskForm } from "@/components/TaskForm";
@@ -54,6 +56,7 @@ const Index = () => {
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterDialogOpen, setFilterDialogOpen] = useState(false);
+  const [taskView, setTaskView] = useState<'list' | 'board'>('list');
   const [filters, setFilters] = useState<TaskFilters>({
     status: [],
     priority: []
@@ -217,6 +220,23 @@ const Index = () => {
     refetch();
   };
 
+  const handleStatusChange = async (taskId: string, newStatus: Task['status']) => {
+    try {
+      await updateTask(taskId, { status: newStatus });
+      toast({
+        title: "Task status updated",
+        description: `Task moved to ${newStatus.replace('-', ' ')}`,
+      });
+    } catch (error) {
+      console.error('Error updating task status:', error);
+      toast({
+        title: "Error updating task",
+        description: "Could not update the task status. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Show loading or redirect if not authenticated
   if (loading) {
     return (
@@ -272,6 +292,7 @@ const Index = () => {
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="text-xl font-semibold neon-text uppercase tracking-wider">YOUR TASKS</h2>
                     <div className="flex items-center gap-2">
+                      <TaskViewToggle view={taskView} onViewChange={setTaskView} />
                       <div className="relative">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                         <Input 
@@ -351,6 +372,13 @@ const Index = () => {
                         </>
                       )}
                     </div>
+                  ) : taskView === 'board' ? (
+                    <TaskBoard
+                      tasks={filteredTasks}
+                      onEdit={handleEditTask}
+                      onDelete={handleDeleteTask}
+                      onStatusChange={handleStatusChange}
+                    />
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {filteredTasks.map((task) => (

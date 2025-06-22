@@ -16,6 +16,7 @@ import { Plus, Search, Filter, LogOut, AlertCircle, RefreshCw } from "lucide-rea
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTasks, Task } from "@/hooks/useTasks";
+import { useToast } from "@/hooks/use-toast";
 
 const mockProjects = [
   {
@@ -59,6 +60,7 @@ const Index = () => {
   });
   const { user, loading, signOut } = useAuth();
   const { tasks, loading: tasksLoading, createTask, updateTask, deleteTask, refetch } = useTasks();
+  const { toast } = useToast();
   const navigate = useNavigate();
 
   // Filter and search tasks
@@ -132,23 +134,69 @@ const Index = () => {
   }, [createTask]);
 
   const handleEditTask = (task: Task) => {
+    console.log('Editing task:', task);
     setEditingTask(task);
     setTaskFormOpen(true);
+    toast({
+      title: "Editing task",
+      description: `Opening "${task.title}" for editing`,
+    });
   };
 
-  const handleDeleteTask = (taskId: string) => {
-    deleteTask(taskId);
+  const handleDeleteTask = async (taskId: string) => {
+    const taskToDelete = tasks.find(t => t.id === taskId);
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete "${taskToDelete?.title || 'this task'}"? This action cannot be undone.`
+    );
+    
+    if (confirmDelete) {
+      try {
+        await deleteTask(taskId);
+        toast({
+          title: "Task deleted",
+          description: "The task has been successfully deleted.",
+        });
+      } catch (error) {
+        console.error('Error deleting task:', error);
+        toast({
+          title: "Error deleting task",
+          description: "Could not delete the task. Please try again.",
+          variant: "destructive",
+        });
+      }
+    }
   };
 
   const handleSaveTask = async (taskData: Omit<Task, "id"> & { id?: string }) => {
-    if (taskData.id) {
-      // Edit existing task
-      await updateTask(taskData.id, taskData);
-    } else {
-      // Create new task
-      await createTask(taskData);
+    try {
+      if (taskData.id) {
+        // Edit existing task
+        console.log('Updating task:', taskData);
+        await updateTask(taskData.id, taskData);
+        toast({
+          title: "Task updated",
+          description: `"${taskData.title}" has been successfully updated.`,
+        });
+      } else {
+        // Create new task
+        console.log('Creating new task:', taskData);
+        await createTask(taskData);
+        toast({
+          title: "Task created",
+          description: `"${taskData.title}" has been successfully created.`,
+        });
+      }
+      setTaskFormOpen(false);
+      setEditingTask(undefined);
+    } catch (error) {
+      console.error('Error saving task:', error);
+      toast({
+        title: "Error saving task",
+        description: "Could not save the task. Please try again.",
+        variant: "destructive",
+      });
+      throw error; // Re-throw to let the form handle the error state
     }
-    setTaskFormOpen(false);
   };
 
   const handleSignOut = async () => {
@@ -340,7 +388,12 @@ const Index = () => {
         
         <TaskForm
           open={taskFormOpen}
-          onOpenChange={setTaskFormOpen}
+          onOpenChange={(open) => {
+            if (!open) {
+              setEditingTask(undefined);
+            }
+            setTaskFormOpen(open);
+          }}
           task={editingTask}
           onSave={handleSaveTask}
         />
